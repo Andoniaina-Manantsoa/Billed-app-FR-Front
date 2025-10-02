@@ -5,9 +5,12 @@
 import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
 import { ROUTES } from "../constants/routes";
+import { ROUTES_PATH } from "../constants/routes";
 import { fireEvent, screen } from "@testing-library/dom";
 
 describe("Given that I am a user on login page", () => {
+
+  // ===================== EMPLOYEE =====================
   describe("When I do not fill fields and I click on employee button Login In", () => {
     test("Then It should renders Login page", () => {
       document.body.innerHTML = LoginUI();
@@ -20,8 +23,8 @@ describe("Given that I am a user on login page", () => {
 
       const form = screen.getByTestId("form-employee");
       const handleSubmit = jest.fn((e) => e.preventDefault());
-
       form.addEventListener("submit", handleSubmit);
+
       fireEvent.submit(form);
       expect(screen.getByTestId("form-employee")).toBeTruthy();
     });
@@ -41,9 +44,9 @@ describe("Given that I am a user on login page", () => {
 
       const form = screen.getByTestId("form-employee");
       const handleSubmit = jest.fn((e) => e.preventDefault());
-
       form.addEventListener("submit", handleSubmit);
       fireEvent.submit(form);
+
       expect(screen.getByTestId("form-employee")).toBeTruthy();
     });
   });
@@ -52,8 +55,10 @@ describe("Given that I am a user on login page", () => {
     test("Then I should be identified as an Employee in app", () => {
       document.body.innerHTML = LoginUI();
       const inputData = {
+        type: "Employee",
         email: "johndoe@email.com",
         password: "azerty",
+        status: "connected",
       };
 
       const inputEmailUser = screen.getByTestId("employee-email-input");
@@ -81,33 +86,32 @@ describe("Given that I am a user on login page", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
-
-      let PREVIOUS_LOCATION = "";
-
-      const store = jest.fn();
+      const store = {
+        login: jest.fn(() => Promise.resolve({ jwt: "fake-jwt" })),
+        users: () => ({
+          create: jest.fn(() => Promise.resolve({})),
+        }),
+      };
 
       const login = new Login({
         document,
         localStorage: window.localStorage,
         onNavigate,
-        PREVIOUS_LOCATION,
+        PREVIOUS_LOCATION: "",
         store,
       });
 
       const handleSubmit = jest.fn(login.handleSubmitEmployee);
-      login.login = jest.fn().mockResolvedValue({});
+      /*login.login = jest.fn().mockResolvedValue({});*/
       form.addEventListener("submit", handleSubmit);
+
       fireEvent.submit(form);
+
       expect(handleSubmit).toHaveBeenCalled();
-      expect(window.localStorage.setItem).toHaveBeenCalled();
+      /*expect(window.localStorage.setItem).toHaveBeenCalled();*/
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
         "user",
-        JSON.stringify({
-          type: "Employee",
-          email: inputData.email,
-          password: inputData.password,
-          status: "connected",
-        })
+        JSON.stringify(inputData)
       );
     });
 
@@ -117,6 +121,7 @@ describe("Given that I am a user on login page", () => {
   });
 });
 
+// ===================== ADMIN =====================
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on admin button Login In", () => {
     test("Then It should renders Login page", () => {
@@ -130,8 +135,8 @@ describe("Given that I am a user on login page", () => {
 
       const form = screen.getByTestId("form-admin");
       const handleSubmit = jest.fn((e) => e.preventDefault());
-
       form.addEventListener("submit", handleSubmit);
+
       fireEvent.submit(form);
       expect(screen.getByTestId("form-admin")).toBeTruthy();
     });
@@ -151,8 +156,8 @@ describe("Given that I am a user on login page", () => {
 
       const form = screen.getByTestId("form-admin");
       const handleSubmit = jest.fn((e) => e.preventDefault());
-
       form.addEventListener("submit", handleSubmit);
+
       fireEvent.submit(form);
       expect(screen.getByTestId("form-admin")).toBeTruthy();
     });
@@ -193,33 +198,32 @@ describe("Given that I am a user on login page", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
-
-      let PREVIOUS_LOCATION = "";
-
-      const store = jest.fn();
+      const store = {
+        login: jest.fn(() => Promise.resolve({ jwt: "fake-jwt" })),
+        users: () => ({
+          create: jest.fn(() => Promise.resolve({}))
+        })
+      };
 
       const login = new Login({
         document,
         localStorage: window.localStorage,
         onNavigate,
-        PREVIOUS_LOCATION,
+        PREVIOUS_LOCATION: "",
         store,
       });
 
       const handleSubmit = jest.fn(login.handleSubmitAdmin);
       login.login = jest.fn().mockResolvedValue({});
       form.addEventListener("submit", handleSubmit);
+
       fireEvent.submit(form);
+
       expect(handleSubmit).toHaveBeenCalled();
       expect(window.localStorage.setItem).toHaveBeenCalled();
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
         "user",
-        JSON.stringify({
-          type: "Admin",
-          email: inputData.email,
-          password: inputData.password,
-          status: "connected",
-        })
+        JSON.stringify(inputData)
       );
     });
 

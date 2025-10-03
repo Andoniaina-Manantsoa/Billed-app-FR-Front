@@ -26,11 +26,12 @@ const rows = (data) => {
   const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date))
 
   // 2️⃣ Filtrer les doublons de date
-  const uniqueData = sortedData.filter((bill, index, self) =>
+  /*const uniqueData = sortedData.filter((bill, index, self) =>
     index === self.findIndex(b => b.date === bill.date)
-  )
+  )*/
 
-  return uniqueData.map(bill => row(bill)).join("")
+  /*return uniqueData.map(bill => row(bill)).join("")*/
+  return sortedData.map(bill => row(bill)).join("")
 }
 
 export default ({ data: bills, loading, error }) => {

@@ -11,9 +11,11 @@ export default class Login {
     this.PREVIOUS_LOCATION = PREVIOUS_LOCATION
     this.store = store
 
+    // Formulaire employé
     const formEmployee = this.document.querySelector(`form[data-testid="form-employee"]`)
     formEmployee.addEventListener("submit", this.handleSubmitEmployee)
 
+    // Formulaire admin
     const formAdmin = this.document.querySelector(`form[data-testid="form-admin"]`)
     formAdmin.addEventListener("submit", this.handleSubmitAdmin)
   }
@@ -68,35 +70,35 @@ export default class Login {
       })
   }
 
-  // non couvert par les tests
+  // login
   login = (user) => {
-    if (this.store) {
-      return this.store
-        .login(JSON.stringify({ email: user.email, password: user.password }))
-        .then(({ jwt }) => {
-          localStorage.setItem('jwt', jwt)
-        })
-    } else {
-      return null
-    }
+    if (!this.store) return null
+
+    return this.store
+      .login(JSON.stringify({ email: user.email, password: user.password }))
+      .then((res) => {
+        console.log("Réponse login :", res)
+        // On prend le token du backend peu importe son nom
+        const token = res.jwt || res.token || res.accessToken
+        if (!token) throw new Error("Aucun token reçu du backend")
+        this.localStorage.setItem('jwt', token)
+      })
   }
 
-  // non couvert par les tests
+  // Création d'un nouvel utilisateur
   createUser = (user) => {
-    if (this.store) {
-      return this.store
-        .users()
-        .create({
-          data: JSON.stringify({
-            type: user.type,
-            name: user.email.split('@')[0],
-            email: user.email,
-            password: user.password
-          })
+    if (!this.store) return null
+
+    return this.store
+      .users()
+      .create({
+        data: JSON.stringify({
+          type: user.type,
+          name: user.email.split('@')[0],
+          email: user.email,
+          password: user.password
         })
-        .then(() => this.login(user))
-    } else {
-      return null
-    }
+      })
+      .then(() => this.login(user))
   }
 }

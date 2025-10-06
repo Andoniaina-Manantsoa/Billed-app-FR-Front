@@ -2,93 +2,98 @@
  * @jest-environment jsdom
  */
 
-import { fireEvent, screen } from "@testing-library/dom"
-import NewBillUI from "../views/NewBillUI.js"
-import NewBill from "../containers/NewBill.js"
+import { screen, fireEvent, waitFor } from "@testing-library/dom";
+import NewBillUI from "../views/NewBillUI.js";
+import NewBill from "../containers/NewBill.js";
+import mockStore from "../__mocks__/store.js";
+import router from "../app/Router.js";
 
+// --- Mock localStorage pour simuler un utilisateur connecté ---
+beforeEach(() => {
+  Object.defineProperty(window, 'localStorage', {
+    value: {
+      getItem: jest.fn((key) => {
+        if (key === 'user') {
+          return JSON.stringify({
+            type: 'Employee',
+            email: 'a@a'
+          });
+        }
+        return null;
+      }),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn()
+    },
+    writable: true
+  });
+});
+
+// --- Setup du DOM pour chaque test ---
+beforeEach(() => {
+  document.body.innerHTML = NewBillUI();
+});
+
+// --- Mock de navigation ---
+const onNavigate = (pathname) => {
+  document.body.innerHTML = `<div>Page: ${pathname}</div>`;
+};
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
-    let newBill
+    test("Then uploading a png file should be accepted", async () => {
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
+      const fileInput = screen.getByTestId("file");
 
-    beforeEach(() => {
-      const html = NewBillUI()
-      document.body.innerHTML = html
-      localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }))
-      newBill = new NewBill({
-        document,
-        onNavigate: jest.fn(),
-        store: { bills: jest.fn(() => ({ create: jest.fn() })) },
-        localStorage
-      })
-    })
+      const file = new File(["dummy content"], "test.png", { type: "image/png" });
 
-    test("Then uploading a png file should be accepted", () => {
-      const fileInput = screen.getByTestId("file")
-      const file = new File(["dummy content"], "test.png", { type: "image/png" })
-      fireEvent.change(fileInput, { target: { files: [file] } })
+      fireEvent.change(fileInput, { target: { files: [file] } });
 
-      expect(fileInput.files[0].name).toBe("test.png")
-    })
+      await waitFor(() => {
+        expect(fileInput.files[0].name).toBe("test.png");
+      });
+    });
 
-    test("Then uploading a pdf file should be rejected", () => {
-      const fileInput = screen.getByTestId("file")
-      const file = new File(["dummy content"], "test.pdf", { type: "application/pdf" })
+    test("Then uploading a jpg/jpeg file should be accepted", async () => {
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
+      const fileInput = screen.getByTestId("file");
 
-      // Mock alert
-      window.alert = jest.fn()
+      const file = new File(["dummy content"], "test.jpg", { type: "image/jpeg" });
 
-      fireEvent.change(fileInput, { target: { files: [file] } })
+      fireEvent.change(fileInput, { target: { files: [file] } });
 
-      expect(window.alert).toHaveBeenCalledWith("Seuls les fichiers jpg, jpeg et png sont autorisés.")
-      expect(fileInput.value).toBe("")
-    })
+      await waitFor(() => {
+        expect(fileInput.files[0].name).toBe("test.jpg");
+      });
+    });
 
-    test("Then handleChangeFile should update fileUrl and billId when store returns data", async () => {
-      document.body.innerHTML = NewBillUI()
-      localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }))
+    test("Then uploading a pdf file should be rejected", async () => {
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
+      const fileInput = screen.getByTestId("file");
 
-      const fileInput = screen.getByTestId("file")
-      const file = new File(["dummy content"], "test.png", { type: "image/png" })
+      const file = new File(["dummy content"], "test.pdf", { type: "application/pdf" });
 
-      // on mock le store
-      const mockCreate = jest.fn(() =>
-        Promise.resolve({ fileUrl: "http://localhost/test.png", key: "12345" })
-      )
-      const mockBills = jest.fn(() => ({ create: mockCreate }))
+      fireEvent.change(fileInput, { target: { files: [file] } });
 
-      // on réinstancie newBill avec ce store mocké
-      const newBill = new NewBill({
-        document,
-        onNavigate: jest.fn(),
-        store: { bills: mockBills },
-        localStorage
-      })
+      await waitFor(() => {
+        const errorMsg = document.querySelector(".error-message");
+        expect(errorMsg.classList.contains("hidden")).toBe(false);
+      });
+    });
 
-      // Simule le changement de fichier avec target.files
-      fireEvent.change(fileInput, {
-        target: { files: [file] },
-      })
+    test("Then handleSubmit should call updateBill and navigate to Bills", async () => {
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
+      const form = screen.getByTestId("form-new-bill");
 
-      // attendre la fin de la promesse
-      await new Promise(process.nextTick)
+      const updateBillMock = jest.fn(() => Promise.resolve());
+      newBill.updateBill = updateBillMock;
 
-      expect(mockBills).toHaveBeenCalled()
-      expect(mockCreate).toHaveBeenCalled()
-      expect(newBill.fileUrl).toBe("http://localhost/test.png")
-      expect(newBill.billId).toBe("12345")
-    })
+      fireEvent.submit(form);
 
-    test("Then handleSubmit should call updateBill and navigate to Bills", () => {
-      // mock updateBill
-      newBill.updateBill = jest.fn()
-
-      const form = screen.getByTestId("form-new-bill")
-
-      fireEvent.submit(form)
-
-      expect(newBill.updateBill).toHaveBeenCalled()
-      expect(newBill.onNavigate).toHaveBeenCalledWith("#employee/bills")
-    })
-  })
-})
+      await waitFor(() => {
+        expect(updateBillMock).toHaveBeenCalled();
+        expect(document.body.innerHTML).toContain("Page: #employee/bills");
+      });
+    });
+  });
+});

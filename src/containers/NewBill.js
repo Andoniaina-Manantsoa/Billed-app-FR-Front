@@ -1,62 +1,66 @@
-import { ROUTES_PATH } from '../constants/routes.js'
-import Logout from "./Logout.js"
+import { ROUTES_PATH } from "../constants/routes.js";
+import { formatDate } from "../app/format.js";
 
 export default class NewBill {
   constructor({ document, onNavigate, store, localStorage }) {
-    this.document = document
-    this.onNavigate = onNavigate
-    this.store = store
-    const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
-    formNewBill.addEventListener("submit", this.handleSubmit)
-    const file = this.document.querySelector(`input[data-testid="file"]`)
-    file.addEventListener("change", this.handleChangeFile)
-    this.fileUrl = null
-    this.fileName = null
-    this.billId = null
-    new Logout({ document, localStorage, onNavigate })
-  }
-  handleChangeFile = e => {
-    e.preventDefault()
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    const filePath = e.target.value.split(/\\/g)
-    const fileName = filePath[filePath.length - 1]
+    this.document = document;
+    this.onNavigate = onNavigate;
+    this.store = store;
+    this.localStorage = localStorage;
 
-    // Vérification de l'extension
-    const allowedExtensions = ["jpg", "jpeg", "png"]
-    const fileExtension = fileName.split('.').pop().toLowerCase()
+    this.fileUrl = null;
+    this.fileName = null;
+    this.billId = null;
+
+    const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`);
+    formNewBill.addEventListener("submit", this.handleSubmit);
+
+    const fileInput = this.document.querySelector(`input[data-testid="file"]`);
+    fileInput.addEventListener("change", this.handleChangeFile);
+  }
+
+  handleChangeFile = async (e) => {
+    e.preventDefault();
+    const file = e.target.files[0];
+    const errorMessage = this.document.querySelector(".error-message");
+
+    if (!file) return;
+
+    const fileName = file.name;
+    const fileExtension = fileName.split(".").pop().toLowerCase();
+    const allowedExtensions = ["png", "jpg", "jpeg"];
 
     if (!allowedExtensions.includes(fileExtension)) {
-      e.target.value = null
-      alert("Seuls les fichiers jpg, jpeg et png sont autorisés.")
-      return
+      if (errorMessage) errorMessage.classList.remove("hidden");
+      e.target.value = ""; // reset input
+      return;
     }
 
-    const formData = new FormData()
-    const email = JSON.parse(localStorage.getItem("user")).email
-    formData.append('file', file)
-    formData.append('email', email)
+    if (errorMessage) errorMessage.classList.add("hidden");
 
-    this.store
-      .bills()
-      .create({
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("email", JSON.parse(this.localStorage.getItem("user")).email);
+
+      const response = await this.store.bills().create({
         data: formData,
-        headers: {
-          noContentType: true
-        }
-      })
-      .then(({ fileUrl, key }) => {
-        console.log(fileUrl)
-        this.billId = key
-        this.fileUrl = fileUrl
-        this.fileName = fileName
-      }).catch(error => console.error(error))
-  }
-  handleSubmit = e => {
-    e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value',
-      e.target.querySelector(`input[data-testid="datepicker"]`).value)
+        headers: { noContentType: true },
+      });
 
-    const email = JSON.parse(localStorage.getItem("user")).email
+      this.billId = response.key;
+      this.fileUrl = response.fileUrl;
+      this.fileName = fileName;
+    } catch (error) {
+      console.error("Erreur handleChangeFile:", error);
+    }
+  };
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const email = JSON.parse(this.localStorage.getItem("user")).email;
+
     const bill = {
       email,
       type: e.target.querySelector(`select[data-testid="expense-type"]`).value,
@@ -68,23 +72,22 @@ export default class NewBill {
       commentary: e.target.querySelector(`textarea[data-testid="commentary"]`).value,
       fileUrl: this.fileUrl,
       fileName: this.fileName,
-      status: 'pending'
+      status: "pending",
+    };
+
+    try {
+      await this.updateBill(bill);
+      this.onNavigate(ROUTES_PATH["Bills"]);
+    } catch (error) {
+      console.error("Erreur handleSubmit:", error);
     }
+  };
 
-    this.updateBill(bill)
-    this.onNavigate(ROUTES_PATH['Bills'])
-  }
-
-  // not need to cover this function by tests
+  // Met à jour la note de frais dans le store
   updateBill = (bill) => {
     if (this.store) {
-      this.store
-        .bills()
-        .update({ data: JSON.stringify(bill), selector: this.billId })
-        .then(() => {
-          this.onNavigate(ROUTES_PATH['Bills'])
-        })
-        .catch(error => console.error(error))
+      return this.store.bills().update({ data: JSON.stringify(bill), selector: this.billId });
     }
-  }
+    return Promise.resolve();
+  };
 }

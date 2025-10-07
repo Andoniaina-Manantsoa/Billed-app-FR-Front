@@ -67,14 +67,17 @@ export const getStatus = (index) => {
   }
 }
 
-export default class {
+export default class Dashboard {
   constructor({ document, onNavigate, store, bills, localStorage }) {
     this.document = document
     this.onNavigate = onNavigate
     this.store = store
-    $('#arrow-icon1').click((e) => this.handleShowTickets(e, bills, 1))
-    $('#arrow-icon2').click((e) => this.handleShowTickets(e, bills, 2))
-    $('#arrow-icon3').click((e) => this.handleShowTickets(e, bills, 3))
+    this.listStates = { 1: false, 2: false, 3: false } // <-- état d'ouverture par liste
+
+    $('#arrow-icon1').off('click').on('click', (e) => this.handleShowTickets(e, bills, 1))
+    $('#arrow-icon2').off('click').on('click', (e) => this.handleShowTickets(e, bills, 2))
+    $('#arrow-icon3').off('click').on('click', (e) => this.handleShowTickets(e, bills, 3))
+
     new Logout({ localStorage, onNavigate })
   }
 
@@ -108,9 +111,9 @@ export default class {
       $('.vertical-navbar').css({ height: '120vh' })
       this.counter++
     }
-    $('#icon-eye-d').click(this.handleClickIconEye)
-    $('#btn-accept-bill').click((e) => this.handleAcceptSubmit(e, bill))
-    $('#btn-refuse-bill').click((e) => this.handleRefuseSubmit(e, bill))
+    $('#icon-eye-d').off('click').on('click', this.handleClickIconEye)
+    $('#btn-refuse-bill').off('click').on('click', (e) => this.handleRefuseSubmit(e, bill))
+    $('#btn-accept-bill').off('click').on('click', (e) => this.handleAcceptSubmit(e, bill))
   }
 
   handleAcceptSubmit = (e, bill) => {
@@ -134,23 +137,19 @@ export default class {
   }
 
   handleShowTickets(e, bills, index) {
-    if (this.counter === undefined || this.index !== index) this.counter = 0;
-    //console.log(this.counter, this.index);
-    if (this.index === undefined || this.index !== index) this.index = index;
-    //console.log(this.counter, this.index);
-    if (this.counter % 2 === 0) {
-      //si une liste est ouverte
-      //console.log(this.counter, this.index);
-      $(`#arrow-icon${this.index}`).css({ transform: "rotate(0deg)" })
-      $(`#status-bills-container${this.index}`).html(
-        cards(filteredBills(bills, getStatus(this.index)))
-      )
-      this.counter++;
+    // bascule l'état de la liste cliquée
+    this.listStates[index] = !this.listStates[index]
 
+    if (this.listStates[index]) {
+      // affiche les tickets
+      $(`#arrow-icon${index}`).css({ transform: "rotate(0deg)" })
+      $(`#status-bills-container${index}`).html(
+        cards(filteredBills(bills, getStatus(index)))
+      )
     } else {
-      $(`#arrow-icon${this.index}`).css({ transform: "rotate(90deg)" })
-      $(`#status-bills-container${this.index}`).html("")
-      this.counter++
+      // masque les tickets
+      $(`#arrow-icon${index}`).css({ transform: "rotate(90deg)" })
+      $(`#status-bills-container${index}`).html("")
     }
 
     /**---------bug 4----------------------------------------------

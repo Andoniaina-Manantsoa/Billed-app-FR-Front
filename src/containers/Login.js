@@ -30,15 +30,13 @@ export default class Login {
       type: "Employee",
       email: emailInput.value,
       password: passwordInput.value,
-      status: "connected"
+      status: "connected",
     }
-
-    this.localStorage.setItem("user", JSON.stringify(user))
 
     this.login(user)
       .catch(() => this.createUser(user))
       .then(() => {
-        this.onNavigate(ROUTES_PATH['Bills'])
+        if (this.onNavigate) this.onNavigate(ROUTES_PATH['Bills'])
         this.PREVIOUS_LOCATION = ROUTES_PATH['Bills']
         PREVIOUS_LOCATION = this.PREVIOUS_LOCATION
         this.document.body.style.backgroundColor = "#fff"
@@ -55,24 +53,22 @@ export default class Login {
       type: "Admin",
       email: emailInput.value,
       password: passwordInput.value,
-      status: "connected"
+      status: "connected",
     }
-
-    this.localStorage.setItem("user", JSON.stringify(user))
 
     this.login(user)
       .catch(() => this.createUser(user))
       .then(() => {
-        this.onNavigate(ROUTES_PATH['Dashboard'])
+        if (this.onNavigate) this.onNavigate(ROUTES_PATH['Dashboard'])
         this.PREVIOUS_LOCATION = ROUTES_PATH['Dashboard']
         PREVIOUS_LOCATION = this.PREVIOUS_LOCATION
         this.document.body.style.backgroundColor = "#fff"
       })
   }
 
-  // login
+  // Login et stockage JWT dans localStorage.user
   login = (user) => {
-    if (!this.store) return null
+    if (!this.store) return Promise.resolve(null) // <- retourne une promesse
 
     return this.store
       .login(JSON.stringify({ email: user.email, password: user.password }))
@@ -81,13 +77,29 @@ export default class Login {
         // On prend le token du backend peu importe son nom
         const token = res.jwt || res.token || res.accessToken
         if (!token) throw new Error("Aucun token reçu du backend")
-        this.localStorage.setItem('jwt', token)
+
+        // Stockage complet de l'utilisateur avec token
+        const loggedUser = {
+          type: user.type,
+          email: user.email,
+          password: user.password,
+          status: "connected",
+        }
+        this.localStorage.setItem("user", JSON.stringify(loggedUser))
+        this.localStorage.setItem("jwt", token) // token séparé pour l’API
+
+        return token
+      })
+
+      .catch((err) => {
+        console.error("Erreur login :", err)
+        throw err
       })
   }
 
   // Création d'un nouvel utilisateur
   createUser = (user) => {
-    if (!this.store) return null
+    if (!this.store) return Promise.resolve(null);
 
     return this.store
       .users()

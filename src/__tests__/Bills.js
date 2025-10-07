@@ -1,15 +1,18 @@
 /**
  * @jest-environment jsdom
  */
-
-import { screen, waitFor } from "@testing-library/dom"
+import mockStore from "../__mocks__/store"
+import { fireEvent, screen, waitFor } from "@testing-library/dom"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH } from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 import router from "../app/Router.js";
 import Bills from "../containers/Bills.js";
 import { formatDate, formatStatus } from "../app/format.js";
+import "@testing-library/jest-dom"
+
+jest.mock("../app/store", () => mockStore)
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {

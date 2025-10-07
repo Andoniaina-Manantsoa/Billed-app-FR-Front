@@ -22,15 +22,9 @@ const row = (bill) => {
 const rows = (data) => {
   if (!data || !data.length) return ""
 
-  // 1️⃣ Trier par date décroissante
+  // Trier par date décroissante
   const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date))
 
-  // 2️⃣ Filtrer les doublons de date
-  /*const uniqueData = sortedData.filter((bill, index, self) =>
-    index === self.findIndex(b => b.date === bill.date)
-  )*/
-
-  /*return uniqueData.map(bill => row(bill)).join("")*/
   return sortedData.map(bill => row(bill)).join("")
 }
 

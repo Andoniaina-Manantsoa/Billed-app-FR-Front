@@ -20,43 +20,61 @@ export default () => {
       pathname,
       window.location.origin + pathname
     )
+
     if (pathname === ROUTES_PATH['Login']) {
       rootDiv.innerHTML = ROUTES({ pathname })
       document.body.style.backgroundColor = "#0E5AE5"
       new Login({ document, localStorage, onNavigate, PREVIOUS_LOCATION, store })
-    } else if (pathname === ROUTES_PATH['Bills']) {
+    }
+    else if (pathname === ROUTES_PATH['Bills']) {
       rootDiv.innerHTML = ROUTES({ pathname, loading: true })
       const divIcon1 = document.getElementById('layout-icon1')
       const divIcon2 = document.getElementById('layout-icon2')
-      divIcon1.classList.add('active-icon')
-      divIcon2.classList.remove('active-icon')
+
+      if (divIcon1 && divIcon2) {
+        divIcon1.classList.add('active-icon')
+        divIcon2.classList.remove('active-icon')
+      }
+
       const bills = new Bills({ document, onNavigate, store, localStorage })
       bills.getBills().then(data => {
         rootDiv.innerHTML = BillsUI({ data })
         const divIcon1 = document.getElementById('layout-icon1')
         const divIcon2 = document.getElementById('layout-icon2')
-        divIcon1.classList.add('active-icon')
-        divIcon2.classList.remove('active-icon')
+
+        if (divIcon1 && divIcon2) {
+          divIcon1.classList.add('active-icon')
+          divIcon2.classList.remove('active-icon')
+        }
+
         new Bills({ document, onNavigate, store, localStorage })
-      }).catch(error => {
-        rootDiv.innerHTML = ROUTES({ pathname, error })
       })
-    } else if (pathname === ROUTES_PATH['NewBill']) {
+        .catch(error => {
+          rootDiv.innerHTML = ROUTES({ pathname, error })
+        })
+    }
+    else if (pathname === ROUTES_PATH['NewBill']) {
       rootDiv.innerHTML = ROUTES({ pathname, loading: true })
       new NewBill({ document, onNavigate, store, localStorage })
       const divIcon1 = document.getElementById('layout-icon1')
       const divIcon2 = document.getElementById('layout-icon2')
-      divIcon1.classList.remove('active-icon')
-      divIcon2.classList.add('active-icon')
-    } else if (pathname === ROUTES_PATH['Dashboard']) {
+
+      if (divIcon1 && divIcon2) {
+        divIcon1.classList.add('active-icon')
+        divIcon2.classList.remove('active-icon')
+      }
+
+    }
+    else if (pathname === ROUTES_PATH['Dashboard']) {
       rootDiv.innerHTML = ROUTES({ pathname, loading: true })
       const bills = new Dashboard({ document, onNavigate, store, bills: [], localStorage })
       bills.getBillsAllUsers().then(bills => {
         rootDiv.innerHTML = DashboardUI({ data: { bills } })
         new Dashboard({ document, onNavigate, store, bills, localStorage })
-      }).catch(error => {
-        rootDiv.innerHTML = ROUTES({ pathname, error })
       })
+        .catch(error => {
+          rootDiv.innerHTML = ROUTES({ pathname, error })
+        })
     }
   }
 

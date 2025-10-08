@@ -94,8 +94,9 @@ export default class Dashboard {
   handleEditTicket(e, bill, bills) {
     if (this.counter === undefined || this.id !== bill.id) this.counter = 0
     if (this.id === undefined || this.id !== bill.id) this.id = bill.id
+
     if (this.counter % 2 === 0) {
-      bills.forEach(b => {
+      bills.forEach((b) => {
         $(`#open-bill${b.id}`).css({ background: '#0D5AE5' })
       })
       $(`#open-bill${bill.id}`).css({ background: '#2A2B35' })
@@ -111,6 +112,8 @@ export default class Dashboard {
       $('.vertical-navbar').css({ height: '120vh' })
       this.counter++
     }
+
+    // listeners pour l’œil et boutons
     $('#icon-eye-d').off('click').on('click', this.handleClickIconEye)
     $('#btn-refuse-bill').off('click').on('click', (e) => this.handleRefuseSubmit(e, bill))
     $('#btn-accept-bill').off('click').on('click', (e) => this.handleAcceptSubmit(e, bill))
@@ -171,19 +174,13 @@ export default class Dashboard {
       return this.store
         .bills()
         .list()
-        .then(snapshot => {
-          const bills = snapshot
-            .map(doc => ({
-              id: doc.id,
-              ...doc,
-              date: doc.date,
-              status: doc.status
-            }))
-          return bills
-        })
-        .catch(error => {
-          throw error;
-        })
+        .then(snapshot => snapshot.map(doc => ({
+          id: doc.id,
+          ...doc,
+          date: doc.date,
+          status: doc.status
+        })))
+        .catch(error => { throw error })
     }
   }
 

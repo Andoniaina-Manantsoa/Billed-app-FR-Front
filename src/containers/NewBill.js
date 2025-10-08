@@ -62,7 +62,7 @@ export default class NewBill {
           this.billId = key;
           this.fileUrl = fileUrl;
           this.fileName = fileName;
-          this.updateBill(bill);
+          this.updateBill(response);
         })
         .catch((error) => console.error(error));
 

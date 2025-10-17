@@ -5,6 +5,7 @@ import { ROUTES_PATH } from '../constants/routes.js'
 import USERS_TEST from '../constants/usersTest.js'
 import Logout from "./Logout.js"
 
+//Filtrer les factures selon leur statut
 export const filteredBills = (data, status) => {
   return (data && data.length) ?
     data.filter(bill => {
@@ -27,6 +28,7 @@ export const filteredBills = (data, status) => {
     }) : []
 }
 
+//Crée le HTML d’une carte de facture affichée dans le tableau de bord.
 export const card = (bill) => {
   const firstAndLastNames = bill.email.split('@')[0]
   const firstName = firstAndLastNames.includes('.') ?
@@ -52,10 +54,12 @@ export const card = (bill) => {
   `)
 }
 
+//Génère une liste complète de cartes HTML en appelant card() sur chaque facture.
 export const cards = (bills) => {
   return bills && bills.length ? bills.map(bill => card(bill)).join("") : ""
 }
 
+//Traduit un indice numérique (1, 2, 3) en un statut texte.
 export const getStatus = (index) => {
   switch (index) {
     case 1:
@@ -67,6 +71,7 @@ export const getStatus = (index) => {
   }
 }
 
+//contrôleur principal du tableau de bord.
 export default class Dashboard {
   constructor({ document, onNavigate, store, bills, localStorage }) {
     this.document = document
@@ -81,6 +86,7 @@ export default class Dashboard {
     new Logout({ localStorage, onNavigate })
   }
 
+  //Affiche une modale avec l’image du justificatif (ticket) quand l’admin clique sur l’icône “œil”.
   handleClickIconEye = () => {
     const billUrl = $('#icon-eye-d').attr("data-bill-url")
     const imgWidth = Math.floor($('#modaleFileAdmin1').width() * 0.8)
@@ -91,6 +97,7 @@ export default class Dashboard {
       $('#modaleFileAdmin1').modal('show')
   }
 
+  //Permet à l’admin de voir les détails d’un ticket.
   handleEditTicket(e, bill, bills) {
     if (this.counter === undefined || this.id !== bill.id) this.counter = 0
     if (this.id === undefined || this.id !== bill.id) this.id = bill.id
@@ -119,6 +126,7 @@ export default class Dashboard {
     $('#btn-accept-bill').off('click').on('click', (e) => this.handleAcceptSubmit(e, bill))
   }
 
+  // mettent à jour le statut de la facture (accepted ou refused)/ envoient la modification via updateBill()/ redirigent vers le Dashboard.
   handleAcceptSubmit = (e, bill) => {
     const newBill = {
       ...bill,
@@ -139,6 +147,7 @@ export default class Dashboard {
     this.onNavigate(ROUTES_PATH['Dashboard'])
   }
 
+  //Gère l’affichage/masquage des listes selon le statut
   handleShowTickets(e, bills, index) {
     // bascule l'état de la liste cliquée
     this.listStates[index] = !this.listStates[index]
@@ -169,6 +178,7 @@ export default class Dashboard {
     });
   }
 
+  // Récupère toutes les factures depuis la base de données (store)
   getBillsAllUsers = () => {
     if (this.store) {
       return this.store
@@ -184,7 +194,7 @@ export default class Dashboard {
     }
   }
 
-  // not need to cover this function by tests
+  // Met à jour une facture dans la base
   /* istanbul ignore next */
   updateBill = (bill) => {
     if (this.store) {

@@ -345,7 +345,7 @@ describe("Etant donné que je suis un utilisateur connecté en tant que Employé
       expect(data[0].status).toEqual('En attente')
     });
 
-    //----test d'intégration-----//
+    //-----Test d'intégration-----//
     describe("Lorsqu'une erreur se produit sur l'API", () => {
       beforeEach(() => {
         /*

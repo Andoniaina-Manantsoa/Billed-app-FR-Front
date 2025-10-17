@@ -9,7 +9,10 @@ import Store from "../app/Store.js";
 import { ROUTES } from "../constants/routes";
 import { fireEvent, screen } from "@testing-library/dom";
 
+//*****************EMPLOYEE*************//
 describe("Étant donné que je suis un utilisateur sur la page de connexion", () => {
+
+  //* TEST UNITAIRE *//
   describe("Quand je ne remplis pas les champs et que je clique sur le bouton Employé Se connecter", () => {
     test("Ensuite, il devrait rendre la page de connexion", () => {
       document.body.innerHTML = LoginUI();
@@ -29,6 +32,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion", ()
     });
   });
 
+  //* TEST UNITAIRE *//
   describe("Lorsque je remplis des champs dans un format incorrect et que je clique sur le bouton Employé Se connecter", () => {
     test("Ensuite, il devrait rendre la page de connexion", () => {
       document.body.innerHTML = LoginUI();
@@ -53,6 +57,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion", ()
   /**
    * A DEBUGUER (MM)
    */
+  //* TEST D'INTEGRATION *//
   describe("Lorsque je remplis les champs dans le bon format et que je clique sur le bouton de l'employé", () => {
     test("Ensuite, je devrais être identifié en tant qu'employé dans l'application", () => {
       document.body.innerHTML = LoginUI();
@@ -121,7 +126,10 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion", ()
   });
 });
 
+//*****************ADMIN*************//
 describe("Étant donné que je suis un utilisateur sur la page de connexion ", () => {
+
+  //* TEST UNITAIRE *//
   describe("Quand je ne remplis pas les champs et que je clique sur le bouton admin Se connecter", () => {
     test("Ensuite, il devrait rendre la page de connexion", () => {
       document.body.innerHTML = LoginUI();
@@ -141,6 +149,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion ", (
     });
   });
 
+  //* TEST UNITAIRE *//
   describe("Lorsque je remplis des champs dans un format incorrect et que je clique sur le bouton admin Se connecter", () => {
     test("Ensuite, il devrait rendre la page de connexion", () => {
       document.body.innerHTML = LoginUI();
@@ -162,6 +171,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion ", (
     });
   });
 
+  //* TEST D'INTEGRATION *//
   describe("Lorsque je remplis les champs dans le bon format et que je clique sur le bouton admin Se connecter", () => {
     test("Ensuite, je devrais être identifié en tant qu'administrateur RH dans l'application", () => {
       document.body.innerHTML = LoginUI();
@@ -236,6 +246,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion ", (
    * AJOUT DU TEST D'ERREUR PENDANT LA SOUMISSION DE L'EMPLOYÉ
    */
 
+  //* TEST D'INTEGRATION *//
   describe("Lorsque je clique sur le bouton Employé Se connecter et qu'une erreur se produit", () => {
     test("Ensuite, un nouvel utilisateur devrait avoir été créé", async () => {
       document.body.innerHTML = LoginUI();
@@ -280,6 +291,7 @@ describe("Étant donné que je suis un utilisateur sur la page de connexion ", (
    * TEST POUR ERREUR PENDANT LA SOUMISSION ADMIN
    */
 
+  //* TEST D'INTEGRATION *//
   describe("Lorsque je clique sur le bouton admin Connexion et qu'une erreur se produit", () => {
     test("Ensuite, un nouvel utilisateur devrait avoir été créé", async () => {
       document.body.innerHTML = LoginUI();
